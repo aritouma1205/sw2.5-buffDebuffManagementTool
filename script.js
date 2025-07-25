@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const effectNameInput = document.getElementById('effect-name-input');
     const effectDurationInput = document.getElementById('effect-duration-input');
     const effectDescriptionInput = document.getElementById('effect-description-input');
-    const effectTypeInput = document.getElementById('effect-type-input');
+    const effectTypeInput = document = document.getElementById('effect-type-input');
     const effectTargetRangeInput = document.getElementById('effect-target-range-input');
     const definedEffectsList = document.getElementById('defined-effects-list');
 
@@ -204,6 +204,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         currentRound++;
         characters.forEach(char => {
+            // 効果終了のタイミングを「効果ラウンド数の開始時」に変更
+            // endRoundが効果が有効な最終ラウンドを示すようにする
             char.effects = char.effects.filter(effect => currentRound <= effect.endRound);
         });
         updateUI();
@@ -524,7 +526,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 ...effectDefinition,
                 instanceId: Date.now().toString(),
                 duration: duration,
-                endRound: currentRound + duration
+                // ここを修正: 効果が適用されたラウンドを含め、指定されたラウンド数だけ持続するようにする
+                // 例えば、現在ラウンドが1でdurationが3の場合、1, 2, 3ラウンドの間有効
+                // endRoundは効果が有効な最終ラウンドを示す
+                endRound: currentRound + duration - 1
             };
             char.effects.push(newEffectInstance);
         }
