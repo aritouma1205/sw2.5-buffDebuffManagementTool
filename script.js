@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentRound = 1;
     let characters = [];
     let definedEffects = [];
-    let combatHistory = []; 
+    let combatHistory = [];
 
     // DOM要素の取得
     const currentRoundSpan = document.getElementById('current-round');
@@ -18,6 +18,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const applyAllEffectBtn = document.getElementById('apply-all-effect-btn');
     const applyAllyEffectBtn = document.getElementById('apply-ally-effect-btn');
     const applyEnemyEffectBtn = document.getElementById('apply-enemy-effect-btn');
+    const applyMultiTargetEffectBtn = document.getElementById('apply-multi-target-effect-btn'); // 複数対象適用ボタン
+
+    const copyCharacterEffectsBtn = document.getElementById('copy-character-effects-btn');
 
     const addEffectForm = document.getElementById('add-effect-form');
     const effectNameInput = document.getElementById('effect-name-input');
@@ -34,8 +37,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalEffectDuration = document.getElementById('modal-effect-duration');
     const modalApplyBtn = document.getElementById('modal-apply-btn');
 
-    let currentApplyingCharId = null; 
-    let currentApplyingEffectRange = null; 
+    let currentApplyingCharId = null;
+    let currentApplyingEffectRange = null;
 
     // --- データ永続化 (localStorage) ---
     function loadData() {
@@ -43,7 +46,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (savedData) {
             const data = JSON.parse(savedData);
             currentRound = data.currentRound || 1;
-            characters = data.characters || [];
+            // characters配列のロード時にisCheckedプロパティを正しく復元
+            characters = (data.characters || []).map(char => ({
+                ...char,
+                isChecked: char.isChecked || false // isCheckedが未定義の場合はfalse
+            }));
             definedEffects = data.definedEffects || [];
             combatHistory = data.combatHistory || [];
         }
@@ -52,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function saveData() {
         const dataToSave = {
             currentRound: currentRound,
-            characters: characters,
+            characters: characters, // isCheckedプロパティを含む状態で保存
             definedEffects: definedEffects,
             combatHistory: combatHistory
         };
@@ -68,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
         saveData();
     }
 
-    // キャラクターリストのレンダリングを修正
+    // キャラクターリストのレンダリングを修正（チェックボックスを復活）
     function renderCharacters() {
         charactersContainer.innerHTML = '';
         if (characters.length === 0) {
@@ -78,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const sortedCharacters = [...characters].sort((a, b) => {
             if (a.faction === 'ally' && b.faction === 'enemy') return -1;
             if (a.faction === 'enemy' && b.faction === 'ally') return 1;
-            return 0; 
+            return 0;
         });
 
         sortedCharacters.forEach(char => {
@@ -86,6 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
             charCard.className = `character-card character-faction-${char.faction}`;
             charCard.innerHTML = `
                 <h3>
+                    <input type="checkbox" class="character-checkbox" data-char-id="${char.id}" ${char.isChecked ? 'checked' : ''}>
                     ${char.name}
                     <span class="faction-indicator ${char.faction}">${char.faction === 'ally' ? '味方' : '敵'}</span>
                 </h3>
@@ -142,12 +150,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // キャラクターカード内のイベントリスナーをアタッチ
+    // キャラクターカード内のイベントリスナーをアタッチを修正（チェックボックス関連を復活）
     function attachCharacterEventListeners() {
         document.querySelectorAll('.add-effect-to-char-btn').forEach(button => {
             button.addEventListener('click', (event) => {
                 const charId = event.target.dataset.charId;
-                openApplyEffectModal(charId, 'single'); 
+                openApplyEffectModal(charId, 'single');
             });
         });
 
@@ -159,7 +167,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // ここを修正：キャラクター削除ボタンのクラス名とラベルを変更
         document.querySelectorAll('.remove-char-btn').forEach(button => {
             button.addEventListener('click', (event) => {
                 const charId = event.target.dataset.charId;
@@ -168,13 +175,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         });
+
+        // チェックボックスの状態が変更されたときのイベントリスナーを復活
+        document.querySelectorAll('.character-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', (event) => {
+                const charId = event.target.dataset.charId;
+                const char = characters.find(c => c.id === charId);
+                if (char) {
+                    char.isChecked = event.target.checked;
+                    saveData(); // チェックボックスの状態も保存
+                }
+            });
+        });
     }
 
-    // --- ラウンド管理ロジック (変更なし) ---
+    // --- ラウンド管理ロジックを修正 ---
     nextRoundBtn.addEventListener('click', () => {
+        // characters配列内のisCheckedプロパティを更新してから履歴に保存
+        characters.forEach(char => {
+            const checkbox = document.querySelector(`.character-checkbox[data-char-id="${char.id}"]`);
+            char.isChecked = checkbox ? checkbox.checked : false;
+        });
+
         combatHistory.push({
             round: currentRound,
-            charactersState: JSON.parse(JSON.stringify(characters))
+            charactersState: JSON.parse(JSON.stringify(characters)) // charactersの現在の状態を保存
         });
 
         currentRound++;
@@ -188,7 +213,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (combatHistory.length > 0) {
             const prevState = combatHistory.pop();
             currentRound = prevState.round;
-            characters = JSON.parse(JSON.stringify(prevState.charactersState)); 
+            characters = JSON.parse(JSON.stringify(prevState.charactersState));
+
+            // 復元した履歴に基づいてチェックボックスの状態をDOMに反映
+            // renderCharactersで再描画される際に反映されるため、個別のDOM操作は不要
             updateUI();
         } else {
             alert('これ以上前のラウンドには戻れません。');
@@ -200,13 +228,14 @@ document.addEventListener('DOMContentLoaded', () => {
             currentRound = 1;
             characters.forEach(char => {
                 char.effects = [];
+                char.isChecked = false; // チェックボックスも解除
             });
             combatHistory = [];
             updateUI();
         }
     });
 
-    // --- キャラクター管理 (変更なし) ---
+    // --- キャラクター管理を修正 ---
     addCharacterBtn.addEventListener('click', () => {
         const newCharName = newCharacterNameInput.value.trim();
         let newCharFaction = 'ally';
@@ -221,7 +250,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 id: Date.now().toString(),
                 name: newCharName,
                 faction: newCharFaction,
-                effects: []
+                effects: [],
+                isChecked: false // 新規作成時、チェックボックスはオフ
             };
             characters.push(newChar);
             updateUI();
@@ -270,7 +300,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 新しい全体適用ボタンのイベントリスナー (変更なし) ---
     applyAllEffectBtn.addEventListener('click', () => {
-        openApplyEffectModal(null, 'all'); 
+        openApplyEffectModal(null, 'all');
     });
 
     applyAllyEffectBtn.addEventListener('click', () => {
@@ -281,11 +311,88 @@ document.addEventListener('DOMContentLoaded', () => {
         openApplyEffectModal(null, 'all_enemy');
     });
 
+    // 「複数対象に効果を適用」ボタンのイベントリスナーを修正
+    applyMultiTargetEffectBtn.addEventListener('click', () => {
+        const checkedCharacters = characters.filter(char => {
+            // isCheckedプロパティを参照してチェックされているキャラクターを取得
+            return char.isChecked;
+        });
 
-    // --- キャラクターへの効果適用モーダル (変更なし) ---
+        if (checkedCharacters.length === 0) {
+            alert('効果を適用するキャラクターをチェックボックスで選択してください。');
+            return;
+        }
+
+        // 複数対象適用の場合、モーダルには「単体」ターゲットの効果のみを表示
+        openApplyEffectModal(null, 'multi_target');
+    });
+
+
+    // --- コピーボタンのイベントリスナーと関数の修正 (変更なし) ---
+    copyCharacterEffectsBtn.addEventListener('click', () => {
+        const textToCopy = generateCharacterEffectsText();
+        navigator.clipboard.writeText(textToCopy)
+            .then(() => {
+                alert('キャラクター効果がクリップボードにコピーされました！');
+            })
+            .catch(err => {
+                console.error('クリップボードへのコピーに失敗しました:', err);
+                alert('クリップボードへのコピーに失敗しました。ブラウザのコンソールを確認してください。');
+            });
+    });
+
+    // generateCharacterEffectsText (変更なし)
+    function generateCharacterEffectsText() {
+        let lines = [];
+        characters.forEach(char => {
+            const activeEffects = char.effects.filter(effect => currentRound <= effect.endRound);
+
+            if (activeEffects.length === 0) {
+                return;
+            }
+
+            let allSubEffects = [];
+            activeEffects.forEach(effect => {
+                const subDescriptions = effect.description.split('\n')
+                    .map(line => line.trim())
+                    .filter(line => line !== '');
+
+                if (subDescriptions.length > 0) {
+                    allSubEffects.push(...subDescriptions);
+                } else {
+                    allSubEffects.push(effect.name.trim());
+                }
+            });
+
+            const sortedSubEffects = allSubEffects.sort((a, b) => {
+                const getBaseNameForSort = (text) => {
+                    const match = text.match(/^(.*?)([+-]?\d+)$/);
+                    return match ? match[1].trim() : text.trim();
+                };
+
+                const baseNameA = getBaseNameForSort(a);
+                const baseNameB = getBaseNameForSort(b);
+
+                const nameCompare = baseNameA.localeCompare(baseNameB);
+                if (nameCompare !== 0) {
+                    return nameCompare;
+                }
+
+                return a.localeCompare(b);
+            });
+
+            if (sortedSubEffects.length > 0) {
+                lines.push(`${char.name}:${sortedSubEffects.join('、')}`);
+            }
+        });
+        return lines.join('\n');
+    }
+
+
+    // --- キャラクターへの効果適用モーダルを修正 ---
     function openApplyEffectModal(charId, applyRangeType = 'single') {
-        currentApplyingCharId = charId; 
-        currentApplyingEffectRange = applyRangeType; 
+        currentApplyingCharId = charId;
+        currentApplyingEffectRange = applyRangeType;
 
         const char = characters.find(c => c.id === charId);
         let modalTitle = '効果を適用';
@@ -297,13 +404,17 @@ document.addEventListener('DOMContentLoaded', () => {
             modalTitle = '味方全体に効果を適用';
         } else if (applyRangeType === 'all_enemy') {
             modalTitle = '敵全体に効果を適用';
+        } else if (applyRangeType === 'multi_target') { // 複数対象モード
+            modalTitle = '複数対象に効果を適用';
         }
         modalCharName.textContent = modalTitle;
-        
+
         modalEffectSelect.innerHTML = '';
 
         const filteredDefinedEffects = definedEffects.filter(effect => {
-            if (applyRangeType === 'single') {
+            // モーダル表示元のボタンタイプに応じてフィルタリング
+            // 'multi_target'も「単体」効果のみを対象にする
+            if (applyRangeType === 'single' || applyRangeType === 'multi_target') {
                 return effect.targetRange === 'single';
             } else if (applyRangeType === 'all') {
                 return effect.targetRange === 'all';
@@ -386,13 +497,23 @@ document.addEventListener('DOMContentLoaded', () => {
             targetCharacters = characters.filter(char => char.faction === 'ally');
         } else if (currentApplyingEffectRange === 'all_enemy') {
             targetCharacters = characters.filter(char => char.faction === 'enemy');
+        } else if (currentApplyingEffectRange === 'multi_target') {
+            // チェックされたキャラクターを対象とする
+            targetCharacters = characters.filter(char => char.isChecked);
+
+            // 適用後、チェックを外す (データとDOM両方)
+            targetCharacters.forEach(char => {
+                char.isChecked = false; // データ側のisCheckedを更新
+                const checkbox = document.querySelector(`.character-checkbox[data-char-id="${char.id}"]`);
+                if (checkbox) checkbox.checked = false; // DOM側のチェックボックスを更新
+            });
         }
-        
+
         targetCharacters.forEach(char => {
             applyEffectToCharacter(char.id, definedEffect, duration);
         });
-        
-        updateUI(); 
+
+        updateUI();
         applyEffectModal.style.display = 'none';
     });
 
