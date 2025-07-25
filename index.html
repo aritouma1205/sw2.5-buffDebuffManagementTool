@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SW2.5 バフ・デバフ管理</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <h1>ソード・ワールド2.5 バフ・デバフ管理</h1>
+
+        <section id="round-control">
+            <h2>現在のラウンド: <span id="current-round">1</span></h2>
+            <div class="round-buttons">
+                <button id="prev-round-btn">前のラウンドへ</button>
+                <button id="next-round-btn">次のラウンドへ</button>
+                <button id="reset-combat-btn" class="reset-button">戦闘をリセット (1Rへ)</button>
+            </div>
+        </section>
+
+        <section id="effect-definition">
+            <h2>カスタム効果の定義</h2>
+            <form id="add-effect-form">
+                <input type="text" id="effect-name-input" placeholder="効果名 (例: ブレス)" required>
+                <input type="number" id="effect-duration-input" placeholder="効果時間 (ラウンド)" min="1" required>
+                <textarea id="effect-description-input" placeholder="効果内容 (例: 回避力+1)"></textarea>
+                <select id="effect-type-input">
+                    <option value="buff">バフ</option>
+                    <option value="debuff">デバフ</option>
+                    <option value="other">その他</option>
+                </select>
+                <select id="effect-target-range-input">
+                    <option value="single">単体</option>
+                    <option value="all">すべて</option>
+                    <option value="all_ally">味方すべて</option>
+                    <option value="all_enemy">敵すべて</option>
+                </select>
+                <button type="submit">効果を追加</button>
+            </form>
+            <h3>定義済み効果リスト:</h3>
+            <ul id="defined-effects-list">
+                </ul>
+        </section>
+
+        <section id="character-list">
+            <h2>キャラクター</h2>
+            <div id="add-character-form">
+                <input type="text" id="new-character-name-input" placeholder="キャラクター名" required>
+                <div class="character-faction-select">
+                    <label><input type="radio" name="new_char_faction" value="ally" checked> 味方</label>
+                    <label><input type="radio" name="new_char_faction" value="enemy"> 敵</label>
+                </div>
+                <button id="add-character-btn">キャラクターを追加</button>
+            </div>
+
+            <div class="effect-apply-buttons">
+                <button id="apply-all-effect-btn">全体効果を適用</button>
+                <button id="apply-ally-effect-btn">味方全体に効果を適用</button>
+                <button id="apply-enemy-effect-btn">敵全体に効果を適用</button>
+            </div>
+
+            <div id="characters-container">
+                </div>
+        </section>
+
+        <div id="apply-effect-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <h3><span id="modal-char-name"></span>に効果を適用</h3>
+                <label for="modal-effect-select">効果の選択:</label>
+                <select id="modal-effect-select"></select>
+                <label for="modal-effect-duration">残りラウンド数:</label>
+                <input type="number" id="modal-effect-duration" value="1" min="1">
+                <button id="modal-apply-btn">適用</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
