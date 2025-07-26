@@ -14,7 +14,9 @@ body {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
-h1, h2, h3 {
+h1,
+h2,
+h3 {
     color: #2c3e50;
     border-bottom: 2px solid #e0e0e0;
     padding-bottom: 5px;
@@ -62,7 +64,10 @@ button:hover {
     background-color: #c0392b;
 }
 
-input[type="text"], input[type="number"], textarea, select {
+input[type="text"],
+input[type="number"],
+textarea,
+select {
     padding: 8px;
     margin-right: 10px;
     border: 1px solid #ccc;
@@ -71,6 +76,7 @@ input[type="text"], input[type="number"], textarea, select {
     font-size: 0.9em;
     margin-bottom: 10px;
 }
+
 input[type="number"] {
     width: auto;
 }
@@ -89,14 +95,17 @@ textarea {
     margin-bottom: 20px;
     flex-wrap: wrap;
 }
+
 #add-character-form input[type="text"] {
     flex-grow: 1;
 }
+
 .character-faction-select {
     display: flex;
     gap: 15px;
     align-items: center;
 }
+
 .character-faction-select label {
     display: flex;
     align-items: center;
@@ -112,9 +121,11 @@ textarea {
     margin-bottom: 20px;
     flex-wrap: wrap;
 }
+
 .effect-apply-buttons button {
     background-color: #27ae60;
 }
+
 .effect-apply-buttons button:hover {
     background-color: #229954;
 }
@@ -123,6 +134,7 @@ textarea {
 .multi-target-button {
     background-color: #3498db;
 }
+
 .multi-target-button:hover {
     background-color: #2980b9;
 }
@@ -134,6 +146,7 @@ textarea {
     margin-bottom: 20px;
     width: auto;
 }
+
 #copy-character-effects-btn:hover {
     background-color: #e67e22;
 }
@@ -157,14 +170,14 @@ textarea {
     color: #34495e;
     border-bottom: none;
     padding-bottom: 0;
-    display: flex; /* チェックボックスと横並びにするため */
-    align-items: center; /* 垂直方向中央揃え */
-    gap: 5px; /* チェックボックスと名前の間隔 */
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }
-/* チェックボックスのスタイル調整 */
+
 .character-card h3 input[type="checkbox"] {
-    margin: 0; /* デフォルトマージンをリセット */
-    transform: scale(1.2); /* 少し大きく表示 */
+    margin: 0;
+    transform: scale(1.2);
     cursor: pointer;
 }
 
@@ -176,11 +189,13 @@ textarea {
     margin-left: 10px;
     vertical-align: middle;
 }
+
 .character-card .faction-indicator.ally {
     background-color: #d4edda;
     color: #155724;
     border: 1px solid #c3e6cb;
 }
+
 .character-card .faction-indicator.enemy {
     background-color: #f8d7da;
     color: #721c24;
@@ -199,11 +214,12 @@ textarea {
 .remove-char-btn {
     background-color: #e74c3c;
 }
+
 .remove-char-btn:hover {
     background-color: #c0392b;
 }
 
-/* Effect Item Styles (変更なし) */
+/* Effect Item Styles */
 .effect-list {
     list-style: none;
     padding: 0;
@@ -221,10 +237,12 @@ textarea {
     font-size: 0.9em;
 }
 
-.effect-item span, .effect-item p {
+.effect-item span,
+.effect-item p {
     margin: 0;
     flex-shrink: 0;
 }
+
 .effect-item p {
     flex-basis: 100%;
     font-size: 0.85em;
@@ -276,12 +294,20 @@ textarea {
     margin-left: 5px;
 }
 
-/* Defined Effects List (変更なし) */
+/* 定義済み効果リスト（通常リスト）のスタイル */
+#defined-effects-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    /* 親のpaddingがあるため、ulのマージンはリセット */
+}
+
 #defined-effects-list li {
     background-color: #ecf0f1;
     border: 1px solid #bdc3c7;
     padding: 8px 12px;
     margin-bottom: 5px;
+    /* 各リストアイテム間の余白 */
     border-radius: 5px;
     display: flex;
     justify-content: space-between;
@@ -289,18 +315,81 @@ textarea {
     font-size: 0.9em;
     flex-wrap: wrap;
 }
+
 #defined-effects-list li span:first-child {
     flex-grow: 1;
 }
 
-
+/* 定義済み効果の削除ボタンのスタイル */
 #defined-effects-list li .remove-defined-effect-btn {
     background-color: #95a5a6;
+    /* グレー系の色 */
     margin-left: 10px;
+    border-radius: 5px;
+    width: auto;
+    height: auto;
+    padding: 5px 10px;
+    font-size: 0.8em;
 }
+
 #defined-effects-list li .remove-defined-effect-btn:hover {
     background-color: #7f8c8d;
 }
+
+/* アコーディオンのスタイル */
+.accordion-header {
+    margin-top: 25px;
+    margin-bottom: 0;
+}
+
+.accordion-header button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background-color: #e0e0e0;
+    color: #333;
+    border: 1px solid #ccc;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: bold;
+    transition: background-color 0.2s ease, border-radius 0.2s ease;
+}
+
+.accordion-header button:hover {
+    background-color: #d0d0d0;
+}
+
+.accordion-header button.expanded {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.accordion-content {
+    background-color: #fdfdfd;
+    border: 1px solid #ccc;
+    border-top: none;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+    /* 修正: padding-bottom を transition から外すか、0 にする */
+    padding: 0 15px 0;
+    /* 上下左右でpaddingを設定。隠す時は上下を0に */
+    overflow: hidden;
+    max-height: 0;
+    /* transition: max-height 0.3s ease-out, padding 0.3s ease-out; */
+    /* padding-bottom が邪魔な場合があるため、max-heightのみにするか、個別指定 */
+    transition: max-height 0.3s ease-out;
+    /* paddingはアニメーションさせない */
+}
+
+.accordion-content.expanded {
+    max-height: 500px;
+    /* 十分な高さを設定。コンテンツに合わせて調整が必要 */
+    padding: 15px;
+    /* 表示時にpaddingを適用 */
+}
+
 
 /* Modal Styles (変更なし) */
 .modal {
@@ -312,7 +401,7 @@ textarea {
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgba(0,0,0,0.4);
+    background-color: rgba(0, 0, 0, 0.4);
 }
 
 .modal-content {
@@ -324,7 +413,7 @@ textarea {
     width: 80%;
     max-width: 500px;
     position: relative;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
 
 .close-button {
@@ -347,7 +436,8 @@ textarea {
     margin-bottom: 5px;
 }
 
-.modal-content select, .modal-content input[type="number"] {
+.modal-content select,
+.modal-content input[type="number"] {
     width: calc(100% - 20px);
     margin-bottom: 15px;
 }

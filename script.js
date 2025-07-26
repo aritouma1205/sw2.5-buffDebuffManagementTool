@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const applyAllEffectBtn = document.getElementById('apply-all-effect-btn');
     const applyAllyEffectBtn = document.getElementById('apply-ally-effect-btn');
     const applyEnemyEffectBtn = document.getElementById('apply-enemy-effect-btn');
-    const applyMultiTargetEffectBtn = document.getElementById('apply-multi-target-effect-btn'); // 複数対象適用ボタン
+    const applyMultiTargetEffectBtn = document.getElementById('apply-multi-target-effect-btn');
 
     const copyCharacterEffectsBtn = document.getElementById('copy-character-effects-btn');
 
@@ -26,9 +26,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const effectNameInput = document.getElementById('effect-name-input');
     const effectDurationInput = document.getElementById('effect-duration-input');
     const effectDescriptionInput = document.getElementById('effect-description-input');
-    const effectTypeInput = document = document.getElementById('effect-type-input');
+    const effectTypeInput = document.getElementById('effect-type-input');
     const effectTargetRangeInput = document.getElementById('effect-target-range-input');
-    const definedEffectsList = document.getElementById('defined-effects-list');
+
+    // 定義済み効果リストのDOM要素をULに戻す
+    const definedEffectsList = document.getElementById('defined-effects-list'); // UL要素を取得
+    // 以前のドロップダウン・削除ボタンの取得は削除
+    // const definedEffectsDropdown = document.getElementById('defined-effects-dropdown');
+    // const deleteSelectedDefinedEffectBtn = document.getElementById('delete-selected-defined-effect-btn');
+
+
+    // アコーディオン関連のDOM要素を取得
+    const toggleDefinedEffectsBtn = document.getElementById('toggle-defined-effects-btn');
+    const definedEffectsContent = document.getElementById('defined-effects-content');
+
 
     const applyEffectModal = document.getElementById('apply-effect-modal');
     const closeModalBtn = applyEffectModal.querySelector('.close-button');
@@ -46,10 +57,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (savedData) {
             const data = JSON.parse(savedData);
             currentRound = data.currentRound || 1;
-            // characters配列のロード時にisCheckedプロパティを正しく復元
             characters = (data.characters || []).map(char => ({
                 ...char,
-                isChecked: char.isChecked || false // isCheckedが未定義の場合はfalse
+                isChecked: char.isChecked || false
             }));
             definedEffects = data.definedEffects || [];
             combatHistory = data.combatHistory || [];
@@ -59,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function saveData() {
         const dataToSave = {
             currentRound: currentRound,
-            characters: characters, // isCheckedプロパティを含む状態で保存
+            characters: characters,
             definedEffects: definedEffects,
             combatHistory: combatHistory
         };
@@ -70,12 +80,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateUI() {
         currentRoundSpan.textContent = currentRound;
         renderCharacters();
-        renderDefinedEffects();
+        renderDefinedEffects(); // ここもリストのレンダリングに変わります
         prevRoundBtn.disabled = combatHistory.length === 0;
         saveData();
     }
 
-    // キャラクターリストのレンダリングを修正（チェックボックスを復活）
+    // キャラクターリストのレンダリング (変更なし)
     function renderCharacters() {
         charactersContainer.innerHTML = '';
         if (characters.length === 0) {
@@ -119,38 +129,44 @@ document.addEventListener('DOMContentLoaded', () => {
         attachCharacterEventListeners();
     }
 
-    // 定義済み効果リストのレンダリング (変更なし)
+    // 定義済み効果リストのレンダリングをULリストに戻す
     function renderDefinedEffects() {
-        definedEffectsList.innerHTML = '';
+        definedEffectsList.innerHTML = ''; // UL要素をクリア
+
         if (definedEffects.length === 0) {
             definedEffectsList.innerHTML = '<li>定義済み効果がありません。</li>';
-        }
+        } else {
+            // 効果名でソートして表示
+            const sortedDefinedEffects = [...definedEffects].sort((a, b) => a.name.localeCompare(b.name));
 
-        definedEffects.forEach(effect => {
-            const effectItem = document.createElement('li');
-            const targetRangeText = {
-                'single': '単体',
-                'all': '全体',
-                'all_ally': '味方全体',
-                'all_enemy': '敵全体'
-            }[effect.targetRange] || '不明';
+            sortedDefinedEffects.forEach(effect => {
+                const effectItem = document.createElement('li');
+                // リストアイテムの表示テキストも詳細に
+                const targetRangeText = {
+                    'single': '単体',
+                    'all': '全体',
+                    'all_ally': '味方全体',
+                    'all_enemy': '敵全体'
+                }[effect.targetRange] || '不明';
 
-            effectItem.innerHTML = `
-                <span>${effect.name} (${effect.duration}R, ${effect.type}, ${targetRangeText}) ${effect.description ? ` - ${effect.description}` : ''}</span>
-                <button data-effect-id="${effect.id}" class="remove-defined-effect-btn">削除</button>
-            `;
-            definedEffectsList.appendChild(effectItem);
-        });
-
-        document.querySelectorAll('.remove-defined-effect-btn').forEach(button => {
-            button.addEventListener('click', (event) => {
-                const effectId = event.target.dataset.effectId;
-                removeDefinedEffect(effectId);
+                effectItem.innerHTML = `
+                    <span>${effect.name} (${effect.duration}R, ${effect.type}, ${targetRangeText}) ${effect.description ? ` - ${effect.description}` : ''}</span>
+                    <button data-effect-id="${effect.id}" class="remove-defined-effect-btn">削除</button>
+                `;
+                definedEffectsList.appendChild(effectItem);
             });
-        });
+
+            // 動的に生成された削除ボタンにイベントリスナーを再設定
+            document.querySelectorAll('#defined-effects-list .remove-defined-effect-btn').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const effectId = event.target.dataset.effectId;
+                    removeDefinedEffect(effectId);
+                });
+            });
+        }
     }
 
-    // キャラクターカード内のイベントリスナーをアタッチを修正（チェックボックス関連を復活）
+    // キャラクターカード内のイベントリスナーをアタッチ (変更なし)
     function attachCharacterEventListeners() {
         document.querySelectorAll('.add-effect-to-char-btn').forEach(button => {
             button.addEventListener('click', (event) => {
@@ -176,22 +192,20 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // チェックボックスの状態が変更されたときのイベントリスナーを復活
         document.querySelectorAll('.character-checkbox').forEach(checkbox => {
             checkbox.addEventListener('change', (event) => {
                 const charId = event.target.dataset.charId;
                 const char = characters.find(c => c.id === charId);
                 if (char) {
                     char.isChecked = event.target.checked;
-                    saveData(); // チェックボックスの状態も保存
+                    saveData();
                 }
             });
         });
     }
 
-    // --- ラウンド管理ロジックを修正 ---
+    // --- ラウンド管理ロジック (変更なし) ---
     nextRoundBtn.addEventListener('click', () => {
-        // characters配列内のisCheckedプロパティを更新してから履歴に保存
         characters.forEach(char => {
             const checkbox = document.querySelector(`.character-checkbox[data-char-id="${char.id}"]`);
             char.isChecked = checkbox ? checkbox.checked : false;
@@ -199,13 +213,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         combatHistory.push({
             round: currentRound,
-            charactersState: JSON.parse(JSON.stringify(characters)) // charactersの現在の状態を保存
+            charactersState: JSON.parse(JSON.stringify(characters))
         });
 
         currentRound++;
         characters.forEach(char => {
-            // 効果終了のタイミングを「効果ラウンド数の開始時」に変更
-            // endRoundが効果が有効な最終ラウンドを示すようにする
             char.effects = char.effects.filter(effect => currentRound <= effect.endRound);
         });
         updateUI();
@@ -216,9 +228,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const prevState = combatHistory.pop();
             currentRound = prevState.round;
             characters = JSON.parse(JSON.stringify(prevState.charactersState));
-
-            // 復元した履歴に基づいてチェックボックスの状態をDOMに反映
-            // renderCharactersで再描画される際に反映されるため、個別のDOM操作は不要
             updateUI();
         } else {
             alert('これ以上前のラウンドには戻れません。');
@@ -230,14 +239,14 @@ document.addEventListener('DOMContentLoaded', () => {
             currentRound = 1;
             characters.forEach(char => {
                 char.effects = [];
-                char.isChecked = false; // チェックボックスも解除
+                char.isChecked = false;
             });
             combatHistory = [];
             updateUI();
         }
     });
 
-    // --- キャラクター管理を修正 ---
+    // --- キャラクター管理 (変更なし) ---
     addCharacterBtn.addEventListener('click', () => {
         const newCharName = newCharacterNameInput.value.trim();
         let newCharFaction = 'ally';
@@ -253,7 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 name: newCharName,
                 faction: newCharFaction,
                 effects: [],
-                isChecked: false // 新規作成時、チェックボックスはオフ
+                isChecked: false
             };
             characters.push(newChar);
             updateUI();
@@ -295,10 +304,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // --- 定義済み効果の削除機能 (ULリストの個別ボタンに対応) ---
     function removeDefinedEffect(effectId) {
-        definedEffects = definedEffects.filter(effect => effect.id !== effectId);
-        updateUI();
+        if (confirm('この定義済み効果を削除しますか？')) {
+            definedEffects = definedEffects.filter(effect => effect.id !== effectId);
+            characters.forEach(char => {
+                char.effects = char.effects.filter(effectInstance => effectInstance.id !== effectId);
+            });
+            updateUI();
+        }
     }
+
+
+    // --- アコーディオン機能の追加 (変更なし) ---
+    toggleDefinedEffectsBtn.addEventListener('click', () => {
+        const isExpanded = definedEffectsContent.classList.toggle('expanded');
+        toggleDefinedEffectsBtn.classList.toggle('expanded', isExpanded);
+        // ボタンのテキストを更新
+        toggleDefinedEffectsBtn.textContent = isExpanded ? '定義済み効果リスト ▲' : '定義済み効果リスト ▼';
+
+        // アコーディオンが開くとき、スクロールバーが最初から表示されないようにコンテンツの最大高さを調整
+        if (isExpanded) {
+            // コンテンツの高さが確定してからmax-heightを設定するとよりスムーズ
+            // ただし、今回はシンプルに固定値を増やす
+            definedEffectsContent.style.maxHeight = definedEffectsContent.scrollHeight + "px"; // コンテンツの実際の高さに合わせる
+        } else {
+            definedEffectsContent.style.maxHeight = "0";
+        }
+    });
+
 
     // --- 新しい全体適用ボタンのイベントリスナー (変更なし) ---
     applyAllEffectBtn.addEventListener('click', () => {
@@ -313,10 +347,8 @@ document.addEventListener('DOMContentLoaded', () => {
         openApplyEffectModal(null, 'all_enemy');
     });
 
-    // 「複数対象に効果を適用」ボタンのイベントリスナーを修正
     applyMultiTargetEffectBtn.addEventListener('click', () => {
         const checkedCharacters = characters.filter(char => {
-            // isCheckedプロパティを参照してチェックされているキャラクターを取得
             return char.isChecked;
         });
 
@@ -325,7 +357,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // 複数対象適用の場合、モーダルには「単体」ターゲットの効果のみを表示
         openApplyEffectModal(null, 'multi_target');
     });
 
@@ -343,7 +374,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     });
 
-    // generateCharacterEffectsText (変更なし)
     function generateCharacterEffectsText() {
         let lines = [];
         characters.forEach(char => {
@@ -391,7 +421,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 
-    // --- キャラクターへの効果適用モーダルを修正 ---
+    // --- キャラクターへの効果適用モーダル (変更なし) ---
     function openApplyEffectModal(charId, applyRangeType = 'single') {
         currentApplyingCharId = charId;
         currentApplyingEffectRange = applyRangeType;
@@ -406,7 +436,7 @@ document.addEventListener('DOMContentLoaded', () => {
             modalTitle = '味方全体に効果を適用';
         } else if (applyRangeType === 'all_enemy') {
             modalTitle = '敵全体に効果を適用';
-        } else if (applyRangeType === 'multi_target') { // 複数対象モード
+        } else if (applyRangeType === 'multi_target') {
             modalTitle = '複数対象に効果を適用';
         }
         modalCharName.textContent = modalTitle;
@@ -414,8 +444,6 @@ document.addEventListener('DOMContentLoaded', () => {
         modalEffectSelect.innerHTML = '';
 
         const filteredDefinedEffects = definedEffects.filter(effect => {
-            // モーダル表示元のボタンタイプに応じてフィルタリング
-            // 'multi_target'も「単体」効果のみを対象にする
             if (applyRangeType === 'single' || applyRangeType === 'multi_target') {
                 return effect.targetRange === 'single';
             } else if (applyRangeType === 'all') {
@@ -500,14 +528,12 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (currentApplyingEffectRange === 'all_enemy') {
             targetCharacters = characters.filter(char => char.faction === 'enemy');
         } else if (currentApplyingEffectRange === 'multi_target') {
-            // チェックされたキャラクターを対象とする
             targetCharacters = characters.filter(char => char.isChecked);
 
-            // 適用後、チェックを外す (データとDOM両方)
             targetCharacters.forEach(char => {
-                char.isChecked = false; // データ側のisCheckedを更新
+                char.isChecked = false;
                 const checkbox = document.querySelector(`.character-checkbox[data-char-id="${char.id}"]`);
-                if (checkbox) checkbox.checked = false; // DOM側のチェックボックスを更新
+                if (checkbox) checkbox.checked = false;
             });
         }
 
@@ -526,9 +552,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 ...effectDefinition,
                 instanceId: Date.now().toString(),
                 duration: duration,
-                // ここを修正: 効果が適用されたラウンドを含め、指定されたラウンド数だけ持続するようにする
-                // 例えば、現在ラウンドが1でdurationが3の場合、1, 2, 3ラウンドの間有効
-                // endRoundは効果が有効な最終ラウンドを示す
                 endRound: currentRound + duration - 1
             };
             char.effects.push(newEffectInstance);

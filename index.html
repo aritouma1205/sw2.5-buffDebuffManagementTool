@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SW2.5 バフ・デバフ管理</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <div id="app">
         <h1>ソード・ワールド2.5 バフ・デバフ管理</h1>
@@ -38,9 +40,13 @@
                 </select>
                 <button type="submit">効果を追加</button>
             </form>
-            <h3>定義済み効果リスト:</h3>
-            <ul id="defined-effects-list">
+            <h3 class="accordion-header">
+                <button id="toggle-defined-effects-btn">定義済み効果リスト ▼</button>
+            </h3>
+            <div id="defined-effects-content" class="accordion-content">
+                <ul id="defined-effects-list">
                 </ul>
+            </div>
         </section>
 
         <section id="character-list">
@@ -64,7 +70,7 @@
             <button id="copy-character-effects-btn" class="copy-button">キャラクター効果をコピー</button>
 
             <div id="characters-container">
-                </div>
+            </div>
         </section>
 
         <div id="apply-effect-modal" class="modal">
@@ -83,4 +89,5 @@
 
     <script src="script.js"></script>
 </body>
+
 </html>
